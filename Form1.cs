@@ -224,7 +224,7 @@ namespace WinFormsApp_ReadLog
         private void btnRead_Click(object sender, EventArgs e)
         {
             string filePath = txtFilePath.Text; // 請替換成你的檔案路徑
-            string targetString = txtKeyword.Text; // 請替換成你要搜尋的字串
+            string targetString = (txtKeyword.Text).Trim(); // 請替換成你要搜尋的字串
             string strAnswer = "";
             try
             {
@@ -269,6 +269,11 @@ namespace WinFormsApp_ReadLog
         private void txtFilePath_TextChanged(object sender, EventArgs e)
         {
             richText_Ans.Text = "";
+            if (txtKeyword.Text != "")
+            {
+                btnRead.Enabled = true;
+                toolStripStatusLabel1.Text = "輸入完成請按'GetResult'.";
+            }
         }
     }
 }

@@ -194,6 +194,7 @@
             txtKeyword.Name = "txtKeyword";
             txtKeyword.Size = new Size(149, 27);
             txtKeyword.TabIndex = 10;
+            txtKeyword.Text = "Job End";
             txtKeyword.TextChanged += txtKeyword_TextChanged;
             // 
             // richText_Ans
