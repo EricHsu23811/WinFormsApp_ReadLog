@@ -1,13 +1,33 @@
-﻿using System.Diagnostics;
+﻿/*****************************************************************************
+ **
+ **  (c) All Rights Reserved.
+ **  
+ typedef enum   
+{
+//--------------- BEGIN ------------------
+     
+//--------------- END --------------------     
+}
+** 2025-06-03
+*   Display PC_MAC/SW_ver_date, Select file and keyword for searching certain value
+** 2025-06-04
+*   Read final result for STgui report.html
+** 2025-06-06
+*   Try to Read "Title:"、"Date &Time:"、"Serial Number:"、"Version:"
+**
+******************************************************************************/
+using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.IO;
 using System.IO.Ports;
+using System.Drawing;
 
 namespace WinFormsApp_ReadLog
 {
     public partial class Form1 : Form
     {
+        //private SerialPort serialPort;
         public Form1()
         {
             InitializeComponent();
@@ -67,8 +87,9 @@ namespace WinFormsApp_ReadLog
                 {
                     macAddresses += nic.GetPhysicalAddress().ToString();
                     break;
-                }
+                }                
             }
+            macAddresses = AddSpaceEveryNChar(macAddresses, 2);
             return macAddresses;
         }
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
@@ -206,8 +227,7 @@ namespace WinFormsApp_ReadLog
                 else { toolStripStatusLabel1.Text = "請輸入Keyword已輸入"; }
             }
             else 
-            { txtKeyword.Enabled = false; toolStripStatusLabel1.Text = "請輸入Keywords"; }
-            
+            { txtKeyword.Enabled = false; toolStripStatusLabel1.Text = "請輸入Keywords"; }            
         }
 
         private void txtKeyword_TextChanged(object sender, EventArgs e)
@@ -225,41 +245,72 @@ namespace WinFormsApp_ReadLog
         {
             string filePath = txtFilePath.Text; // 請替換成你的檔案路徑
             string targetString = (txtKeyword.Text).Trim(); // 請替換成你要搜尋的字串
-            string strAnswer = "";
+            string strFinal = ""; string strAnswer = "";
+            richText_Ans.Text = "";
             try
             {
                 int count = 0;
-                Boolean bStartFindResult = false;   //start to find certain value
-                
+                Boolean bStartFindResult = false;   //flag標示符合關鍵字即可開始擷取答案目標值
+                Boolean bFlag2GetAns = false;         //已找到目標欄位，下個欄位為目標查詢值
+                int iKeywordLineNo = 0; int iLineCount = 0; //記住找到Keyword的那一行
+
                 using (StreamReader reader = new StreamReader(filePath))
                 {
-                    string line; 
+                    string line; string strItem = "";
                     while ((line = reader.ReadLine()) != null)
                     {
-                        if (bStartFindResult)
+                        iLineCount++;
+                        if (bStartFindResult)   //如果flag符合關鍵字即可開始擷取答案目標值
                         {
-                            if (line.Contains("Pass")) 
-                            { strAnswer = "Pass"; bStartFindResult = false; }
-                            else if(line.Contains("Fail")) 
-                            { strAnswer = "Fail"; bStartFindResult = false; }
-                            else if (line.Contains("EndScript")) 
-                            { bStartFindResult = false; }
+                            if (line.Contains("<td>EndScript"))
+                            { bStartFindResult = false; } //STgui的report.html都有兩個Job End，第一個Job End有EndScript當辨識非最終結果需跳過                            
+                            else if(line.Contains("<td>Fail"))  //STgui的可能答案Pass或Fail
+                            { strFinal = "Fail"; bStartFindResult = false; }
+                            else if (line.Contains("<td>Pass"))   //STgui的可能答案
+                            { strFinal = "Pass"; bStartFindResult = false; }
                         }
                         if (line.Contains(targetString))
                         {
                             Console.WriteLine($"Found '{targetString}' in line: {line}");
-                            // 找到字串後，可以執行其他操作
+                            //找到字串後，可以執行其他操作
                             //break; // 如果只需要找到第一個匹配項，則在此處中斷迴圈
                             count += 1;
-                            bStartFindResult = true;
+                            bStartFindResult = true;    //找到關鍵字串即設定flag可開始往後面找目標答案值
                         }
                         //count += line.ToLower().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Count(word => word.Equals(targetString.ToLower())); //忽略大小寫比較
                         Console.WriteLine(line);
-                    }
+
+                        //------To read Serial Number------
+                        //string strItem = "";
+                        string[] strItems = { "Title:","Date &Time:", "Serial Number:", "Version:" };
+                        //if(line.Contains("Serial Number:")) 
+                        //{  bFlag2GetSerial = true; iKeywordLineNo = iLineCount; }
+                        for (int i = 0; i < strItems.Length; i++)
+                        {
+                            if (line.Contains(strItems[i]))
+                            { bFlag2GetAns = true; iKeywordLineNo = iLineCount; strItem = strItems[i]; }
+                        }
+                        if (bFlag2GetAns && iLineCount == iKeywordLineNo + 1)
+                        {
+                            int len = line.Length; int intStartIdx = 0; int intEndIdx = 0;
+                            for (int i = 0; i < len; i++)   //Eric
+                            {
+                                intStartIdx = line.IndexOf("<H4>");
+                                if (strItem != strItems[0])  //"Title:"
+                                { intEndIdx = line.IndexOf("</H4>");}
+                                else { intEndIdx = line.IndexOf("</<H4>"); }                                   
+                            }
+                            strAnswer = line.Substring(intStartIdx + 4, intEndIdx - intStartIdx - 4);
+                            bFlag2GetAns = false; iKeywordLineNo = 0;
+                            richText_Ans.Text += strItem + " " + strAnswer + "\r\n";
+                        }
+                    }                    
                 }
                 Console.WriteLine($"The string '{targetString}' appears {count} times in the file.");
-                richText_Ans.Text = "Found keyword: '" + targetString + "', count = " + count.ToString() + "\r\n" + "Answer is " + strAnswer + ".";
-                toolStripStatusLabel1.Text = "完成查詢，結果為 " + strAnswer;
+                //richText_Ans.Text = "Found keyword: '" + targetString + "', count = " + count.ToString() 
+                //    + "\r\n" + "Answer is " + strAnswer + "." + "\r\n" + "Serial Number: " + strSerial;
+                richText_Ans.Text += "Final: " + strFinal + "." ;
+                toolStripStatusLabel1.Text = "完成查詢，結果為 " + strFinal;
             }
             catch (FileNotFoundException)
             { Console.WriteLine($"File not found: {filePath}"); }
@@ -274,6 +325,15 @@ namespace WinFormsApp_ReadLog
                 btnRead.Enabled = true;
                 toolStripStatusLabel1.Text = "輸入完成請按'GetResult'.";
             }
+        }
+        static string AddSpaceEveryNChar(string str, int split)   //2023-08-11
+        {
+            for (int a = 2; a <= str.Length - 1; a = a + split + 1)
+            {
+                str = str.Insert(a, "-");
+            }
+            Console.WriteLine(str);
+            return str;
         }
     }
 }

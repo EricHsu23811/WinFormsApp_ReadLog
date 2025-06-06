@@ -101,7 +101,7 @@
             // 
             statusStrip1.ImageScalingSize = new Size(20, 20);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1 });
-            statusStrip1.Location = new Point(0, 328);
+            statusStrip1.Location = new Point(0, 387);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new Size(782, 25);
             statusStrip1.TabIndex = 1;
@@ -149,7 +149,7 @@
             // 
             // btnRead
             // 
-            btnRead.Location = new Point(596, 279);
+            btnRead.Location = new Point(596, 340);
             btnRead.Name = "btnRead";
             btnRead.Size = new Size(172, 44);
             btnRead.TabIndex = 6;
@@ -165,7 +165,7 @@
             grpSearch.Controls.Add(richText_Ans);
             grpSearch.Location = new Point(20, 124);
             grpSearch.Name = "grpSearch";
-            grpSearch.Size = new Size(748, 149);
+            grpSearch.Size = new Size(748, 210);
             grpSearch.TabIndex = 8;
             grpSearch.TabStop = false;
             grpSearch.Text = "Search Test";
@@ -201,14 +201,14 @@
             // 
             richText_Ans.Location = new Point(129, 59);
             richText_Ans.Name = "richText_Ans";
-            richText_Ans.Size = new Size(613, 84);
+            richText_Ans.Size = new Size(613, 145);
             richText_Ans.TabIndex = 0;
             richText_Ans.Text = "";
             // 
             // lblSWver
             // 
             lblSWver.AutoSize = true;
-            lblSWver.Location = new Point(20, 292);
+            lblSWver.Location = new Point(12, 353);
             lblSWver.Name = "lblSWver";
             lblSWver.Size = new Size(103, 19);
             lblSWver.TabIndex = 9;
@@ -218,7 +218,7 @@
             // 
             AutoScaleDimensions = new SizeF(9F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(782, 353);
+            ClientSize = new Size(782, 412);
             Controls.Add(lblSWver);
             Controls.Add(grpSearch);
             Controls.Add(btnRead);
@@ -230,7 +230,7 @@
             Controls.Add(menuStrip1);
             MainMenuStrip = menuStrip1;
             Name = "Form1";
-            Text = "STgui Log *.html read test";
+            Text = "STgui report.html read test (GUI 9.1 / 13.2)";
             FormClosing += Form1_FormClosing;
             FormClosed += Form1_FormClosed;
             Load += Form1_Load;
