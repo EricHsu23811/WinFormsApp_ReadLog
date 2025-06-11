@@ -14,7 +14,8 @@
 *   Read final result for STgui report.html
 ** 2025-06-06
 *   Try to Read "Title:"、"Date &Time:"、"Serial Number:"、"Version:"
-**
+** 2025/6/10
+*   Add stationId
 ******************************************************************************/
 using System.Diagnostics;
 using System.Net.NetworkInformation;
@@ -170,14 +171,14 @@ namespace WinFormsApp_ReadLog
                             break;
                         // DBT_DEVICEARRIVAL Event : 裝置插入並且可以使用時，產生的系統訊息
                         case DBT_DEVICEARRIVAL:
-                            //string[] portnames = SerialPort.GetPortNames(); //---工具箱無SerialPort，不存在於目前的內容中
+                            string[] portnames = SerialPort.GetPortNames(); //---工具箱無SerialPort=>從NuGet安裝即可
                             Console.WriteLine("DEVICE was inserted.");
                             toolStripStatusLabel1.Text = "DEVICE was inserted";
                             break;
 
                         // DBT_DEVICEREMOVECOMPLETE Event : 裝置卸載或移除時產生的系統訊息
                         case DBT_DEVICEREMOVECOMPLETE:
-                            //portnames = SerialPort.GetPortNames(); //---工具箱無SerialPort，不存在於目前的內容中
+                            portnames = SerialPort.GetPortNames(); //---工具箱無SerialPort=>從NuGet安裝即可
                             Console.WriteLine("DEVICE was removed.");
                             toolStripStatusLabel1.Text = "DEVICE was removed";
                             break;
@@ -245,7 +246,9 @@ namespace WinFormsApp_ReadLog
         {
             string filePath = txtFilePath.Text; // 請替換成你的檔案路徑
             string targetString = (txtKeyword.Text).Trim(); // 請替換成你要搜尋的字串
-            string strFinal = ""; string strAnswer = "";
+            string strFinal = ""; string strAnswer = ""; 
+            string strStationId = "";
+
             richText_Ans.Text = "";
             try
             {
@@ -253,6 +256,7 @@ namespace WinFormsApp_ReadLog
                 Boolean bStartFindResult = false;   //flag標示符合關鍵字即可開始擷取答案目標值
                 Boolean bFlag2GetAns = false;         //已找到目標欄位，下個欄位為目標查詢值
                 int iKeywordLineNo = 0; int iLineCount = 0; //記住找到Keyword的那一行
+                Boolean bStationGet = true;
 
                 using (StreamReader reader = new StreamReader(filePath))
                 {
@@ -260,11 +264,19 @@ namespace WinFormsApp_ReadLog
                     while ((line = reader.ReadLine()) != null)
                     {
                         iLineCount++;
+                        if (bStationGet)
+                        {
+                            if (line.Contains("BurnFirmware"))
+                            { strStationId = "L-station"; bStationGet = false; }
+                            else if (line.Contains("Mirror Calibration"))
+                            { strStationId = "C-station"; bStationGet = false; }
+                        }                        
+
                         if (bStartFindResult)   //如果flag符合關鍵字即可開始擷取答案目標值
                         {
                             if (line.Contains("<td>EndScript"))
                             { bStartFindResult = false; } //STgui的report.html都有兩個Job End，第一個Job End有EndScript當辨識非最終結果需跳過                            
-                            else if(line.Contains("<td>Fail"))  //STgui的可能答案Pass或Fail
+                            else if (line.Contains("<td>Fail"))  //STgui的可能答案Pass或Fail
                             { strFinal = "Fail"; bStartFindResult = false; }
                             else if (line.Contains("<td>Pass"))   //STgui的可能答案
                             { strFinal = "Pass"; bStartFindResult = false; }
@@ -281,7 +293,6 @@ namespace WinFormsApp_ReadLog
                         Console.WriteLine(line);
 
                         //------To read Serial Number------
-                        //string strItem = "";
                         string[] strItems = { "Title:","Date &Time:", "Serial Number:", "Version:" };
                         //if(line.Contains("Serial Number:")) 
                         //{  bFlag2GetSerial = true; iKeywordLineNo = iLineCount; }
@@ -296,9 +307,9 @@ namespace WinFormsApp_ReadLog
                             for (int i = 0; i < len; i++)   //Eric
                             {
                                 intStartIdx = line.IndexOf("<H4>");
-                                if (strItem != strItems[0])  //"Title:"
-                                { intEndIdx = line.IndexOf("</H4>");}
-                                else { intEndIdx = line.IndexOf("</<H4>"); }                                   
+                                if (strItem == strItems[0])
+                                { intEndIdx = line.IndexOf("</<H4>");}
+                                else { intEndIdx = line.IndexOf("</H4>"); }    //"Title:"                     
                             }
                             strAnswer = line.Substring(intStartIdx + 4, intEndIdx - intStartIdx - 4);
                             bFlag2GetAns = false; iKeywordLineNo = 0;
@@ -309,7 +320,7 @@ namespace WinFormsApp_ReadLog
                 Console.WriteLine($"The string '{targetString}' appears {count} times in the file.");
                 //richText_Ans.Text = "Found keyword: '" + targetString + "', count = " + count.ToString() 
                 //    + "\r\n" + "Answer is " + strAnswer + "." + "\r\n" + "Serial Number: " + strSerial;
-                richText_Ans.Text += "Final: " + strFinal + "." ;
+                richText_Ans.Text += strStationId + "\r" + "Final result: " + strFinal + ".";
                 toolStripStatusLabel1.Text = "完成查詢，結果為 " + strFinal;
             }
             catch (FileNotFoundException)

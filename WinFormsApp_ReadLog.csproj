@@ -6,6 +6,12 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+    <FileVersion>1.0.0.1</FileVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Ports" Version="9.0.5" />
+  </ItemGroup>
 
 </Project>
