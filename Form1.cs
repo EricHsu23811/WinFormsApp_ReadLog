@@ -10,12 +10,10 @@
 }
 ** 2025-06-03
 *   Display PC_MAC/SW_ver_date, Select file and keyword for searching certain value
-** 2025-06-04
-*   Read final result for STgui report.html
-** 2025-06-06
-*   Try to Read "Title:"、"Date &Time:"、"Serial Number:"、"Version:"
-** 2025/6/10
-*   Add stationId
+** 2025-06-04 => Read final result for STgui report.html
+** 2025-06-06 => Try to Read "Title:"、"Date &Time:"、"Serial Number:"、"Version:"
+** 2025/06/10 => Add stationId
+** 2025/06/20 => Add setup project  
 ******************************************************************************/
 using System.Diagnostics;
 using System.Net.NetworkInformation;
